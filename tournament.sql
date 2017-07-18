@@ -38,6 +38,5 @@ CREATE OR REPLACE view records as
 		wins + losses as matches
 	from wins inner join losses
 	on wins.player_id = losses.player_id
-	order by wins desc
+	order by wins desc, losses asc
 ;
-	

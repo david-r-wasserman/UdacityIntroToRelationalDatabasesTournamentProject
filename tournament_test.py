@@ -147,9 +147,40 @@ def testPairings():
     print "10. After one match, players with one win are properly paired."
 
 
+def testSort():
+    """
+    Test that standings are sorted by most wins, with ties broken by
+    fewest losses.
+    """
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    registerPlayer("Pinkie Pie")
+    registerPlayer("Rarity")
+    registerPlayer("Rainbow Dash")
+    standings = playerStandings()
+    [id1, id2, id3, id4, id5, id6] = [row[0] for row in standings]
+    reportMatch(id1, id2)
+    reportMatch(id1, id2)
+    reportMatch(id1, id2)
+    reportMatch(id3, id4)
+    reportMatch(id3, id4)
+    reportMatch(id5, id6)
+    reportMatch(id5, id6)
+    reportMatch(id6, id5)    
+    standings = playerStandings()
+    [ids1, ids2, ids3, ids4, ids5, ids6] = [row[0] for row in standings]
+    if id1 != ids1 or id3 != ids2 or id5 != ids3 or id6 != ids4 \
+        or id4 != ids5:
+        raise ValueError("Standings are not sorted correctly.")
+    print "11. Standings are sorted correctly."    
+
 if __name__ == '__main__':
     testCount()
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testSort()
     print "Success!  All tests pass!"
