@@ -103,6 +103,27 @@ def reportMatch(winner, loser):
                  (winner, loser))
 
 
+def unreportMatch(winner, loser):
+    """Deletes a matches that was incorrectly recorded.
+
+    Args:
+      winner, loser:  same arguments used in the incorrect call to
+          reportMatch()
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("select match_id from matches where winner = %s " +
+                   "and loser = %s order by match_id desc limit 1",
+                   (winner, loser))
+    result = cursor.fetchall()
+    if not result:
+        print("No such match")
+        return
+    cursor.execute("delete from matches where match_id = %s", result)
+    conn.commit()
+    conn.close()
+
+
 def deletePlayer(id):
     """Deletes a player from the database.
 
