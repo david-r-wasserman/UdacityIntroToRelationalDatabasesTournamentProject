@@ -38,19 +38,20 @@ def executeQuery(query, query_args):
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    executeQuery("delete from matches", ())
+    executeQuery("DELETE FROM matches", ())
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    executeQuery("delete from players", ())
+    executeQuery("DELETE FROM players", ())
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("select count(*) from players")
+    query = "SELECT COUNT(*) FROM players"
+    cursor.execute(query)
     numPlayers = cursor.fetchone()[0]
     conn.close()
     return numPlayers
@@ -66,7 +67,9 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    executeQuery("insert into players (name) values(%s)", (name,))
+    query = "INSERT INTO players (name) VALUES(%s)"
+    query_args = (name,)
+    executeQuery(query, query_args)
 
 
 def playerStandings():
@@ -86,7 +89,8 @@ def playerStandings():
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("select * from records")
+    query = "SELECT * FROM records"
+    cursor.execute(query)
     ps = [(row[0], row[1], row[2], row[4]) for row in cursor.fetchall()]
     conn.close()
     return ps
@@ -99,8 +103,9 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    executeQuery("insert into matches (winner, loser) values(%s, %s)",
-                 (winner, loser))
+    query = "INSERT INTO matches (winner, loser) VALUES(%s, %s)"
+    query_args = (winner, loser)
+    executeQuery(query, query_args)
 
 
 def unreportMatch(winner, loser):
@@ -112,14 +117,17 @@ def unreportMatch(winner, loser):
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("select match_id from matches where winner = %s " +
-                   "and loser = %s order by match_id desc limit 1",
-                   (winner, loser))
+    query = "SELECT match_id FROM matches WHERE winner = %s " + \
+            "and loser = %s ORDER BY match_id desc limit 1"
+    query_args = (winner, loser)
+    cursor.execute(query, query_args)
     result = cursor.fetchall()
     if not result:
         print("No such match")
         return
-    cursor.execute("delete from matches where match_id = %s", result)
+    query = "DELETE FROM matches WHERE match_id = %s"
+    query_args = result
+    cursor.execute(query, query_args)
     conn.commit()
     conn.close()
 
@@ -132,14 +140,15 @@ def deletePlayer(id):
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("select count(*) from players where player_id = (%s)",
-                   (id,))
+    query = "SELECT COUNT(*) FROM players WHERE player_id = (%s)"
+    query_args = (id,)
+    cursor.execute(query, query_args)
     if cursor.fetchone()[0] < 1:
         print("Player %d does not exist" % (id,))
         return
-    cursor.execute(
-        "select * from matches where winner = (%s) or loser = (%s)",
-        (id, id))
+    query = "SELECT * FROM matches WHERE winner = (%s) OR loser = (%s)"
+    query_args = (id, id)
+    cursor.execute(query, query_args)
     matches = cursor.fetchall()
     if len(matches):
         print(("If player %d is deleted, the following matches must also " +
@@ -151,10 +160,12 @@ def deletePlayer(id):
         choice = raw_input("Continue? (y/n): ")
         if choice.lower() != 'y':
             return
-        cursor.execute(
-            "delete from matches where winner = (%s) or loser = (%s)",
-            (id, id))
-    cursor.execute("delete from players where player_id = (%s)", (id,))
+        query = "DELETE FROM matches WHERE winner = (%s) OR loser = (%s)"
+        query_args = (id, id)
+        cursor.execute(query, query_args)
+    query = "DELETE FROM players WHERE player_id = (%s)"
+    query_args = (id,)
+    cursor.execute(query, query_args)
     conn.commit()
     conn.close()
 
